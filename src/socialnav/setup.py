@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'data_extracter = socialnav.data_extracter:main'
+            'data_extracter = socialnav.data_extracter:main',
+            'service = socialnav.service_member_function:main',
         ],
     },
 )

@@ -1,3 +1,6 @@
 build/
 install/
 log/
+src/socialnav/saved_model/
+src/socialnav/socialnav/__pycache__/service_member_function.cpython-38.pyc
+

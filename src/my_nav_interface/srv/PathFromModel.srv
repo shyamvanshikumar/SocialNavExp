@@ -1,0 +1,3 @@
+geometry_msgs/PoseStamped init_pose
+---
+nav_msgs/Path path
