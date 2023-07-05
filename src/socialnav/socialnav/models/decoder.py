@@ -4,7 +4,7 @@ import warnings
 import torch
 from torch import nn, Tensor
 import numpy as np
-from models.utils import DecAttnBlock, trunc_normal_
+from .utils import DecAttnBlock, trunc_normal_
 
 class PositionalEncoding(nn.Module):
 

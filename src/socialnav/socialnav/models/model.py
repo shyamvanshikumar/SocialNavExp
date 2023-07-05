@@ -10,9 +10,9 @@ import numpy as np
 import pytorch_lightning as pl
 
 #from train import config as CFG
-from models.encoder import VisionTransformer
-from models.decoder import TransformerDecoder
-from models.utils import MLP
+from .encoder import VisionTransformer
+from .decoder import TransformerDecoder
+from .utils import MLP
 
 def dist_line_point(x1,y1, x2,y2, x3,y3): # x3,y3 is the point
     px = x2-x1

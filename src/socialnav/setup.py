@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'data_extracter = socialnav.data_extracter:main',
             'service = socialnav.service_member_function:main',
+            'client = socialnav.minimal_client:main',
         ],
     },
 )

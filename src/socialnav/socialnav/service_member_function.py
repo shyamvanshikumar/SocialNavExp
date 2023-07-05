@@ -1,5 +1,6 @@
 from my_nav_interface.srv import PathFromModel
 
+import gc
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose, PoseStamped
@@ -9,10 +10,10 @@ from std_msgs.msg import Header
 from PIL import Image
 import torch
 from torchvision import transforms
-from models.model import AttnNav
-from models.encoder import VisionTransformer
-from models.decoder import TransformerDecoder
-import model_config as CFG
+from .models.model import AttnNav
+from .models.encoder import VisionTransformer
+from .models.decoder import TransformerDecoder
+import socialnav.model_config as CFG
 
 
 class PathService(Node):
@@ -84,17 +85,17 @@ class PathService(Node):
             transforms.ConvertImageDtype(torch.float),
         ])
 
-        rgb_tensor = transform(rgb_img).unsqueeze(dim=0)
-        lidar_tensor = transform(lidar).unsqueeze(dim=0)
+        rgb_tensor = transform(rgb_img).unsqueeze(dim=0).to(self.model.device)
+        lidar_tensor = transform(lidar).unsqueeze(dim=0).to(self.model.device)
 
         rgb_enc_out = self.model.rgb_encoder(rgb_tensor)
-        lidar_enc_out = self.model.lidar_endcoder(lidar_tensor)
+        lidar_enc_out = self.model.lidar_encoder(lidar_tensor)
 
         enc_output = torch.cat([rgb_enc_out, lidar_enc_out], dim=2)
-        gen_seq = torch.zeros((1,7,2), dtype=torch.float32)
+        gen_seq = torch.zeros((1,7,2), dtype=torch.float32).to(self.model.device)
 
         for ts in range(0,6):
-            dec_output = self.rob_decoder(enc_output[:,1:], gen_seq[:,:ts+1])
+            dec_output = self.model.rob_decoder(enc_output[:,1:], gen_seq[:,:ts+1])
             gen_seq[:,ts+1] = dec_output[:,-1]
         
 
@@ -102,8 +103,9 @@ class PathService(Node):
 
         for i in range(0,7):
             pose = PoseStamped()
-            pose.pose.position.x = gen_seq[0,i,0]
-            pose.pose.position.y = gen_seq[0,i,1]
+            #print(type(float(gen_seq[0,i,0])))
+            pose.pose.position.x = float(gen_seq[0,i,0])
+            pose.pose.position.y = float(gen_seq[0,i,1])
             pose.pose.position.z = 0.0
             pose.pose.orientation.x = 0.0
             pose.pose.orientation.y = 0.0
@@ -111,6 +113,10 @@ class PathService(Node):
             pose.pose.orientation.w = 1.0
             pose.header.stamp = self.get_clock().now().to_msg()
             response.path.poses.append(pose)
+        
+        del rgb_tensor, lidar_tensor, gen_seq, enc_output
+        gc.collect()
+        torch.cuda.empty_cache()
 
         return response
 
